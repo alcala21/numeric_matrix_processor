@@ -15,7 +15,8 @@ def input_matrix(matrix_message = "matrix"):
 
 
 def input_constant():
-    return float(input("Enter constant: "))
+    const = input("Enter constant: ")
+    return int(const) if const.isdigit() else float(const)
 
 
 def error_message():
