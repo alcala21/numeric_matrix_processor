@@ -64,12 +64,9 @@ def matrix_by_matrix():
 
 
 def perform_operation(menu_option):
-    if menu_option == 1:
-        add_matrices()
-    if menu_option == 2:
-        matrix_by_constant()
-    if menu_option == 3:
-        matrix_by_matrix()
+    lst = [add_matrices, matrix_by_constant, matrix_by_matrix]
+    if menu_option in range(4):
+        lst[menu_option - 1]()
     print("\n")
 
 
