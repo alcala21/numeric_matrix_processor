@@ -76,10 +76,9 @@ def perform_operation(menu_option):
 def main():
     while True:
         option = select_from_menu()
-        if option != 0:
-            perform_operation(option)
-        else:
+        if option == 0:
             break
+        perform_operation(option)
 
 
 main()
