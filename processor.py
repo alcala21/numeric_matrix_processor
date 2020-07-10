@@ -1,3 +1,55 @@
+class Matrix:
+    def __init__(self, size_message, value_message):
+        self.nrows, self.ncols = None, None
+        self.values = None
+        self.get_matrix_size(size_message)
+        self.get_matrix_values(value_message)
+
+    def get_matrix_size(self, matrix_message="Enter size of matrix"):
+        self.nrows, self.ncols = [int(x) if x.isdigit() else float(x) for x in input(matrix_message + ": ").split()]
+
+    def get_matrix_values(self, matrix_message="matrix"):
+        print("Enter " + matrix_message + ":")
+        self.values = [[int(x) if x.isdigit() else float(x) for x in input().split()] for _ in range(self.nrows)]
+
+    def print(self):
+        print("The result is: ")
+        for row in self.values:
+            print(*row)
+
+    def error_message(self):
+        print("The operation cannot be performed.")
+
+    def add_matrix(self, matrix):
+        if self.nrows == matrix.nrows and self.ncols == matrix.ncols:
+            self.values = [[a + b for a, b in zip(x, y)] for x, y in zip(self.values, matrix.values)]
+            self.print()
+        else:
+            self.error_message()
+
+    def multiply_by_matrix(self, matrix):
+        if self.ncols == matrix.nrows:
+            self.values = [[sum([row[i] * matrix.values[i][j] for i in range(matrix.nrows)]) for j in range(matrix.ncols)] for row in self.values]
+            self.print()
+        else:
+            self.error_message()
+
+    def multiply_by_constant(self, constant):
+        self.values = [[constant*x for x in row] for row in self.values]
+
+    def diagonal_transpose(self, type_val=1):
+        if type_val == 1:
+            self.values = [[self.values[j][i]  for j in range(self.nrows)] for i in range(self.ncols)]
+        else:
+            self.values = [[self.values[j][i]  for j in range(self.nrows)[::-1]] for i in range(self.ncols)[::-1]]
+
+    def line_transpose(self, type_val=3):
+        if type_val == 3:
+            self.values = [row[::-1] for row in self.values]
+        else:
+            self.values = [row for row in self.values[::-1]]
+
+
 def select_from_menu():
     print("1. Add matrices")
     print("2. Multiply matrix by constant")
@@ -16,94 +68,36 @@ def select_transpose_type():
     return int(input("Your choice: "))
 
 
-def get_matrix_size(matrix_message = "Enter size of matrix"):
-    n1, m1 = [int(x) if x.isdigit() else float(x) for x in input(matrix_message + ": ").split()]
-    return n1, m1
-
-
-def input_matrix(n1, m1, matrix_message = "matrix"):
-    print("Enter " + matrix_message + ":")
-    A = [[int(x) if x.isdigit() else float(x) for x in input().split()] for _ in range(n1)]
-    return A
-
-
 def input_constant():
     const = input("Enter constant: ")
     return int(const) if const.isdigit() else float(const)
 
 
-def error_message():
-    print("The operation cannot be performed.")
-
-
-def print_result(matrix):
-    print("The result is: ")
-    for row in matrix:
-        print(*row)
-
-
-def add_matrices(A, n1, m1, B, n2, m2):
-    if n1 == n2 and m1 == m2:
-        C = [[a + b for a, b in zip(x, y)] for x, y in zip(A, B)]
-        print_result(C)
+def matrix_matrix(type_number=1):
+    matrix1 = Matrix("Enter size of first matrix", "first matrix")
+    matrix2 = Matrix("Enter size of second matrix", "second matrix")
+    if type_number == 1:
+        matrix1.add_matrix(matrix2)
     else:
-        error_message()
+        matrix1.multiply_by_matrix(matrix2)
 
 
 def matrix_by_constant():
-    n1, m1 = get_matrix_size("Enter size of matrix")
-    A = input_matrix(n1, m1, "matrix")
+    matrix = Matrix("Enter size of matrix", "matrix")
     constant = input_constant()
-    B = [[constant*x for x in row] for row in A]
-    print_result(B)
-
-
-def matrix_matrix(type_number=1):
-    n1, m1 = get_matrix_size("Enter size of first matrix")
-    A = input_matrix(n1, m1, "first matrix")
-    n2, m2 = get_matrix_size("Enter size of second matrix")
-    B = input_matrix(n2, m2, "second matrix")
-    if type_number == 1:
-        add_matrices(A, n1, m1, B, n2, m2)
-    else:
-        matrix_by_matrix(A, n1, m1, B, n2, m2)
-
-
-def matrix_by_matrix(A, n1, m1, B, n2, m2):
-    if m1 == n2:
-        C = [[sum([row[i] * B[i][j] for i in range(n2)]) for j in range(m2)] for row in A]
-        print_result(C)
-    else:
-        error_message()
+    matrix.multiply_by_constant(constant)
+    matrix.print()
 
 
 def transpose_matrix():
     transpose_type = select_transpose_type()
     if transpose_type in range(1, 5):
-        n1, m1 = get_matrix_size("Enter matrix size")
-        matrix = input_matrix(n1, m1, "matrix")
+        matrix = Matrix("Enter matrix size", "matrix")
         if transpose_type <= 2:
-            diagonal_transpose(matrix, n1, m1, transpose_type)
+            matrix.diagonal_transpose(transpose_type)
         else:
-            line_transpose(matrix, transpose_type)
-
-
-def diagonal_transpose(matrix, nrows, ncols, type_number=1):
-    if type_number == 1:
-        new_matrix = [[matrix[j][i]  for j in range(nrows)]
-                for i in range(ncols)]
-    else:
-        new_matrix = [[matrix[j][i]  for j in range(nrows)[::-1]]
-                for i in range(ncols)[::-1]]
-    print_result(new_matrix)
-
-
-def line_transpose(matrix, type_number=3):
-    if type_number == 3:
-        new_matrix = [row[::-1] for row in matrix]
-    else:
-        new_matrix = [row for row in matrix[::-1]]
-    print_result(new_matrix)
+            matrix.line_transpose(transpose_type)
+        matrix.print()
 
 
 def perform_operation(menu_option):
