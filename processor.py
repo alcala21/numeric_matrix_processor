@@ -72,22 +72,24 @@ def input_constant():
     const = input("Enter constant: ")
     return int(const) if const.isdigit() else float(const)
 
+def add_matrices():
+    matrix1, matrix2 = input_matrices()
+    matrix1.add_matrix(matrix2)
 
-def matrix_matrix(type_number=1):
+def multiply_matrices():
+    matrix1, matrix2 = input_matrices()
+    matrix1.multiply_by_matrix(matrix2)
+
+def input_matrices():
     matrix1 = Matrix("Enter size of first matrix", "first matrix")
     matrix2 = Matrix("Enter size of second matrix", "second matrix")
-    if type_number == 1:
-        matrix1.add_matrix(matrix2)
-    else:
-        matrix1.multiply_by_matrix(matrix2)
-
+    return matrix1, matrix2
 
 def matrix_by_constant():
     matrix = Matrix("Enter size of matrix", "matrix")
     constant = input_constant()
     matrix.multiply_by_constant(constant)
     matrix.print()
-
 
 def transpose_matrix():
     transpose_type = select_transpose_type()
@@ -99,14 +101,14 @@ def transpose_matrix():
             matrix.line_transpose(transpose_type)
         matrix.print()
 
+def calculate_determinant():
+    pass
 
 def perform_operation(menu_option):
-    if menu_option in [1, 3]:
-        matrix_matrix(menu_option)
-    elif menu_option == 2:
-        matrix_by_constant()
-    elif menu_option == 4:
-        transpose_matrix()
+    operations = [add_matrices, matrix_by_constant, multiply_matrices,
+                    transpose_matrix, calculate_determinant]
+    if menu_option in range(len(operations) + 1):
+        operations[menu_option - 1]()
     print("\n")
 
 
@@ -116,6 +118,5 @@ def main():
         if option == 0:
             break
         perform_operation(option)
-
 
 main()
