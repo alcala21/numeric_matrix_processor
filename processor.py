@@ -84,26 +84,23 @@ class Matrix:
         return Matrix([row[:col_index] + row[col_index + 1:] for row in (matrix.values[:row_index] + matrix.values[row_index + 1:])])
 
     @staticmethod
-    def cofactors(matrix):
-        cof_matrix = list()
+    def adjoint(matrix):
+        cof_values = list()
         for i in range(matrix.nrows):
             local_row = list()
             for j in range(matrix.ncols):
                 minor = Matrix.minor(matrix, i, j)
                 cof = ((-1) ** (2 + i + j)) * Matrix.det(minor)
                 local_row.append(cof)
-            cof_matrix.append(local_row)
-        return Matrix(cof_matrix)
+            cof_values.append(local_row)
+        return Matrix.diagonal_transpose(Matrix(cof_values), 1)
 
     @staticmethod
     def inverse(matrix):
-        cof_matrix = Matrix.cofactors(matrix)
         det_value = Matrix.det(matrix)
         if det_value == 0:
             return ErrorMessage(2)
-
-        return Matrix.matrix_by_constant(
-            Matrix.diagonal_transpose(cof_matrix, 1), 1 / det_value)
+        return Matrix.matrix_by_constant(Matrix.adjoint(matrix), 1 / det_value)
 
 
 def input_constant():
