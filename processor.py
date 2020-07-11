@@ -1,9 +1,27 @@
+class ErrorMessage:
+    def __init__(self, message_type=1):
+        if message_type == 1:
+            self.message = "The operation cannot be performed."
+        elif message_type == 2:
+            self.message = "This matrix doesn't have an inverse."
+
+    def print(self):
+        return print(self.message)
+
+
 class Matrix:
-    def __init__(self, size_message="Enter matrix size", value_message="matrix"):
-        self.nrows, self.ncols = None, None
-        self.values = None
-        self.get_matrix_size(size_message)
-        self.get_matrix_values(value_message)
+    def __init__(self, values=None, nrows=0, ncols=0, size_message="Enter matrix size", value_message="matrix"):
+        if values is None:
+            values = []
+        self.values = values
+        self.nrows = nrows
+        self.ncols = ncols
+        if not values:
+            self.get_matrix_size(size_message)
+            self.get_matrix_values(value_message)
+        elif nrows == ncols == 0:
+            self.nrows = len(values)
+            self.ncols = len(values[0])
 
     def get_matrix_size(self, matrix_message="Enter size of matrix"):
         self.nrows, self.ncols = [int(x) if x.isdigit() else float(x) for x in input(matrix_message + ": ").split()]
@@ -18,103 +36,133 @@ class Matrix:
             print(*row)
 
     @staticmethod
-    def error_message(self):
-        print("The operation cannot be performed.")
-
-    def add_matrix(self, matrix):
-        if self.nrows == matrix.nrows and self.ncols == matrix.ncols:
-            self.values = [[a + b for a, b in zip(x, y)] for x, y in zip(self.values, matrix.values)]
-            self.print()
+    def sum_matrices(matrix1, matrix2):
+        if matrix1.nrows == matrix2.nrows and matrix1.ncols == matrix2.ncols:
+            values = [[a + b for a, b in zip(x, y)] for x, y in zip(matrix1.values, matrix2.values)]
+            return Matrix(values)
         else:
-            self.error_message()
-
-    def multiply_by_matrix(self, matrix):
-        if self.ncols == matrix.nrows:
-            self.values = [[sum([row[i] * matrix.values[i][j] for i in range(matrix.nrows)]) for j in range(matrix.ncols)] for row in self.values]
-            self.print()
-        else:
-            self.error_message()
+            return ErrorMessage()
 
     @staticmethod
-    def matrix_by_matrix(values1, nrows1, ncols1, values2, nrows2, ncols2):
-        if ncols1 == nrows2:
-            values = [[sum([row[i] * values2[i][j] for i in range(nrows2)]) for j in range(ncols2)] for row in values1]
-            return values
+    def matrix_by_matrix(matrix1, matrix2):
+        if matrix1.ncols == matrix2.nrows:
+            values = [[sum([row[i] * matrix2.values[i][j] for i in range(matrix2.nrows)]) for j in range(matrix2.ncols)]
+                      for row in matrix1.values]
+            return Matrix(values)
         else:
-            return Matrix.error_message()
-
+            return ErrorMessage()
 
     @staticmethod
-    def multiply_by_constant(values, constant):
-        return [[constant*x for x in row] for row in values]
+    def matrix_by_constant(matrix, constant):
+        return Matrix([[constant * x for x in row] for row in matrix.values])
 
-    def diagonal_transpose(self, type_val=1):
+    @staticmethod
+    def diagonal_transpose(matrix, type_val=1):
         if type_val == 1:
-            self.values = Matrix.transpose(self.values, self.nrows, self.ncols)
+            return Matrix([[matrix.values[j][i] for j in range(matrix.nrows)] for i in range(matrix.ncols)])
         else:
-            self.values = [[self.values[j][i]  for j in range(self.nrows)[::-1]] for i in range(self.ncols)[::-1]]
+            return Matrix([[matrix.values[j][i] for j in range(matrix.nrows)[::-1]] for i in range(matrix.ncols)[::-1]])
 
-    def line_transpose(self, type_val=3):
+    @staticmethod
+    def line_transpose(matrix, type_val=3):
         if type_val == 3:
-            self.values = [row[::-1] for row in self.values]
+            return Matrix([row[::-1] for row in matrix.values])
         else:
-            self.values = [row for row in self.values[::-1]]
+            return Matrix([row for row in matrix.values[::-1]])
 
     @staticmethod
-    def transpose(values, nrows, ncols):
-        return [[values[j][i]  for j in range(nrows)] for i in range(ncols)]
-
-    @staticmethod
-    def determinant(values, nrows, ncols):
-        if nrows == ncols == 1:
-            return values[0][0]
-
-        if nrows == ncols == 2:
-            return values[0][0] * values[1][1] - values[0][1] * values[1][0]
-        out_det = 0
-        for i in range(ncols):
-            minor = [[item for j, item in enumerate(row) if i != j] for row in values[1:]]
-            out_det += values[0][i] * ((-1) ** (2 + i)) * Matrix.determinant(minor, nrows - 1, ncols - 1)
+    def det(matrix):
+        if matrix.nrows == matrix.ncols == 1:
+            return matrix.values[0][0]
+        if matrix.nrows == matrix.ncols == 2:
+            return matrix.values[0][0] * matrix.values[1][1] - matrix.values[0][1] * matrix.values[1][0]
+        out_det = sum([x * ((-1) ** (2 + i)) * Matrix.det(Matrix.minor(matrix, 0, i)) for i, x in enumerate(matrix.values[0])])
         return out_det
 
     @staticmethod
-    def cofactors(values, nrows, ncols):
-        cof_matrix = list()
-        for i in range(nrows):
-            local_row = list()
-            for j in range(ncols):
-                minor = [[item for l, item in enumerate(row) if l != j] for k, row in enumerate(values) if k != i]
-                cof = ((-1) ** (2 + i + j)) * Matrix.determinant(minor, nrows - 1, ncols - 1)
-                local_row.append(cof)
-            cof_matrix.append(local_row)
-        return cof_matrix
+    def minor(matrix, row_index, col_index):
+        return Matrix([row[:col_index] + row[col_index + 1:] for row in (matrix.values[:row_index] + matrix.values[row_index + 1:])])
 
     @staticmethod
-    def inverse(values, nrows, ncols):
-        cof_matrix = Matrix.cofactors(values, nrows, ncols)
-        det_value = Matrix.determinant(values, nrows, ncols)
+    def cofactors(matrix):
+        cof_matrix = list()
+        for i in range(matrix.nrows):
+            local_row = list()
+            for j in range(matrix.ncols):
+                minor = Matrix.minor(matrix, i, j)
+                cof = ((-1) ** (2 + i + j)) * Matrix.det(minor)
+                local_row.append(cof)
+            cof_matrix.append(local_row)
+        return Matrix(cof_matrix)
+
+    @staticmethod
+    def inverse(matrix):
+        cof_matrix = Matrix.cofactors(matrix)
+        det_value = Matrix.det(matrix)
         if det_value == 0:
-            print("This matrix doesn't have an inverse.")
+            return ErrorMessage(2)
+
+        return Matrix.matrix_by_constant(
+            Matrix.diagonal_transpose(cof_matrix, 1), 1 / det_value)
+
+
+def input_constant():
+    const = input("Enter constant: ")
+    return int(const) if const.isdigit() else float(const)
+
+
+def add_matrices():
+    Matrix.sum_matrices(*input_matrices()).print()
+
+
+def multiply_matrices():
+    Matrix.matrix_by_matrix(*input_matrices()).print()
+
+
+def input_matrices():
+    matrix1 = Matrix(size_message="Enter size of first matrix", value_message="first matrix")
+    matrix2 = Matrix(size_message="Enter size of second matrix", value_message="second matrix")
+    return matrix1, matrix2
+
+
+def input_matrix(message_type=0):
+    if message_type == 0:
+        return Matrix(size_message="Enter size of matrix",
+                      value_message="matrix")
+    return Matrix(size_message="Enter matrix size",
+                  value_message="matrix")
+
+
+def matrix_by_constant():
+    Matrix.matrix_by_constant(input_matrix(), input_constant()).print()
+
+
+def transpose_matrix():
+    transpose_type = select_transpose_type()
+    if transpose_type in range(1, 5):
+        matrix = input_matrix(1)
+        if transpose_type <= 2:
+            Matrix.diagonal_transpose(matrix, transpose_type).print()
         else:
-            inv_matrix = Matrix.multiply_by_constant(
-                Matrix.transpose(cof_matrix, nrows, ncols), 1 / det_value)
-        return inv_matrix
+            Matrix.line_transpose(matrix, transpose_type).print()
 
 
-    def print_determinant(self):
-        print("The result is:")
-        print(self.determinant(self.values, self.nrows, self.ncols))
+def calculate_determinant():
+    matrix = input_matrix(1)
+    print("The result is:")
+    print(Matrix.det(matrix))
 
 
-    def print_inverse(self):
-        print("The result is:")
-        inv_matrix = self.inverse(self.values, self.nrows, self.ncols)
-        for row in inv_matrix:
-            print(*row)
-            # row_text = ""
-            # for x in row:
-            #     row_text += f"{round(x, 2) + 0: .2f} "
-            # print(row_text.rstrip())
+def inverse_matrix():
+    Matrix.inverse(input_matrix(1)).print()
+
+
+def perform_operation(menu_option):
+    operations = [add_matrices, matrix_by_constant, multiply_matrices,
+                  transpose_matrix, calculate_determinant, inverse_matrix]
+    if menu_option in range(len(operations) + 1):
+        operations[menu_option - 1]()
+    print("\n")
 
 
 def select_from_menu():
@@ -137,68 +185,12 @@ def select_transpose_type():
     return int(input("Your choice: "))
 
 
-def input_constant():
-    const = input("Enter constant: ")
-    return int(const) if const.isdigit() else float(const)
-
-
-def add_matrices():
-    matrix1, matrix2 = input_matrices()
-    matrix1.add_matrix(matrix2)
-
-
-def multiply_matrices():
-    matrix1, matrix2 = input_matrices()
-    matrix1.multiply_by_matrix(matrix2)
-
-
-def input_matrices():
-    matrix1 = Matrix("Enter size of first matrix", "first matrix")
-    matrix2 = Matrix("Enter size of second matrix", "second matrix")
-    return matrix1, matrix2
-
-
-def matrix_by_constant():
-    matrix = Matrix("Enter size of matrix", "matrix")
-    constant = input_constant()
-    matrix.values = Matrix.multiply_by_constant(matrix.values, constant)
-    matrix.print()
-
-
-def transpose_matrix():
-    transpose_type = select_transpose_type()
-    if transpose_type in range(1, 5):
-        matrix = Matrix("Enter matrix size", "matrix")
-        if transpose_type <= 2:
-            matrix.diagonal_transpose(transpose_type)
-        else:
-            matrix.line_transpose(transpose_type)
-        matrix.print()
-
-
-def calculate_determinant():
-    matrix = Matrix("Enter matrix size", "matrix")
-    matrix.print_determinant()
-
-
-def inverse_matrix():
-    matrix = Matrix("Enter matrix size", "matrix")
-    matrix.print_inverse()
-
-
-def perform_operation(menu_option):
-    operations = [add_matrices, matrix_by_constant, multiply_matrices,
-                    transpose_matrix, calculate_determinant, inverse_matrix]
-    if menu_option in range(len(operations) + 1):
-        operations[menu_option - 1]()
-    print("\n")
-
-
 def main():
     while True:
         option = select_from_menu()
         if option == 0:
             break
         perform_operation(option)
+
 
 main()
