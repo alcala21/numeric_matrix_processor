@@ -1,5 +1,5 @@
 class Matrix:
-    def __init__(self, size_message, value_message):
+    def __init__(self, size_message="Enter matrix size", value_message="matrix"):
         self.nrows, self.ncols = None, None
         self.values = None
         self.get_matrix_size(size_message)
@@ -17,6 +17,7 @@ class Matrix:
         for row in self.values:
             print(*row)
 
+    @staticmethod
     def error_message(self):
         print("The operation cannot be performed.")
 
@@ -49,12 +50,31 @@ class Matrix:
         else:
             self.values = [row for row in self.values[::-1]]
 
+    @staticmethod
+    def determinant(values, nrows, ncols):
+        if nrows == ncols == 1:
+            return values[0][0]
+
+        if nrows == ncols == 2:
+            return values[0][0] * values[1][1] - values[0][1] * values[1][0]
+        out_det = 0
+        for i, x in enumerate(values[0]):
+            minor = [[item for j, item in enumerate(row) if i != j] for row in values[1:]]
+            out_det += x * ((-1) ** (2 + i)) * Matrix.determinant(minor, nrows - 1, ncols - 1)
+        return out_det
+
+
+    def print_determinant(self):
+        print("The result is:")
+        print(self.determinant(self.values, self.nrows, self.ncols))
+
 
 def select_from_menu():
     print("1. Add matrices")
     print("2. Multiply matrix by constant")
     print("3. Multiply matrices")
     print("4. Transpose matrix")
+    print("5. Calculate a determinant")
     print("0. Exit")
     return int(input("Your choice: "))
 
@@ -72,24 +92,29 @@ def input_constant():
     const = input("Enter constant: ")
     return int(const) if const.isdigit() else float(const)
 
+
 def add_matrices():
     matrix1, matrix2 = input_matrices()
     matrix1.add_matrix(matrix2)
 
+
 def multiply_matrices():
     matrix1, matrix2 = input_matrices()
     matrix1.multiply_by_matrix(matrix2)
+
 
 def input_matrices():
     matrix1 = Matrix("Enter size of first matrix", "first matrix")
     matrix2 = Matrix("Enter size of second matrix", "second matrix")
     return matrix1, matrix2
 
+
 def matrix_by_constant():
     matrix = Matrix("Enter size of matrix", "matrix")
     constant = input_constant()
     matrix.multiply_by_constant(constant)
     matrix.print()
+
 
 def transpose_matrix():
     transpose_type = select_transpose_type()
@@ -101,8 +126,11 @@ def transpose_matrix():
             matrix.line_transpose(transpose_type)
         matrix.print()
 
+
 def calculate_determinant():
-    pass
+    matrix = Matrix("Enter matrix size", "matrix")
+    matrix.print_determinant()
+
 
 def perform_operation(menu_option):
     operations = [add_matrices, matrix_by_constant, multiply_matrices,
